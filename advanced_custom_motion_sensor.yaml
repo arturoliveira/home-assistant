@@ -178,6 +178,8 @@ condition:
   - condition: template
     value_template: >
       {% if automation_blocker_entitites == null %}
+        true
+      {% else %}
         {% if automation_blocker_boolean %}
           {% for entity in automation_blocker_entities %}
             {% if states[entity].state == 'off' %}
@@ -195,8 +197,6 @@ condition:
             true
           {% endif %}
         {% endif %}
-      {% else %}
-        true
       {% endif %}
   - condition: template
     value_template: >
