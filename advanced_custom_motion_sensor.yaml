@@ -1,5 +1,5 @@
 blueprint:
-  name: Advanced Custom Motion Sensor with Brightness Percentage
+  name: Advanced Custom Motion Sensor with Brightness Slider
   description: |
     This motion sensor is based on several ideas from other blueprints, and adding my own customizations.
     Inputs and actions are:
@@ -58,12 +58,17 @@ blueprint:
           unit_of_measurement: seconds
           mode: slider
           step: 1.0
-    brightness_levels:
-      name: Brightness Levels (Percentage)
-      description: Brightness level to set for each light, in percentage (0-100).
-      default: {}
+    brightness_level:
+      name: Brightness Level (Percentage)
+      description: Brightness level to set for all lights, in percentage (0-100).
+      default: 30
       selector:
-        object: {}
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+          step: 1
     time_default_start:
       name: Only run default action after this time (Optional)
       description: Default Light target will only run when time is later than this time value.
@@ -159,7 +164,7 @@ variables:
   motion_entity: !input motion_entity
   luminance_sensor: !input luminance_sensor
   luminance_required: !input luminance_required
-  brightness_levels: !input brightness_levels
+  brightness_level: !input brightness_level
 trigger:
   - platform: state
     entity_id: !input motion_entity
@@ -209,7 +214,7 @@ action:
             target: !input light_target
             data:
               brightness: >
-                {% set brightness_pct = brightness_levels[trigger.entity_id] | default(100) %}
+                {% set brightness_pct = brightness_level | default(30) %}
                 {% set brightness = (brightness_pct / 100) * 255 %}
                 {{ brightness | round(0) }}
       - conditions:
