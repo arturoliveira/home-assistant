@@ -156,7 +156,6 @@ variables:
   scene_ambient: !input scene_ambient
   automation_blocker_boolean: !input automation_blocker_boolean
   automation_blocker_entities: !input automation_blocker_entities
-  motion_off_blocker: !input motion_off_blocker
   motion_off_blocker_boolean: !input motion_off_blocker_boolean
   elevation: !input elevation
   elevation_adjustment: !input elevation_adjustment
@@ -182,19 +181,15 @@ condition:
           {% if states[entity].state == 'off' %}
             false
           {% endif %}
-        {% else %}
-          true
         {% endfor %}
-      {% else  %}
-		    {% if automation_blocker_boolean %}
-        	{% for entity in automation_blocker_entities %}
-      			{% if states[entity].state == 'on' %}
+      {% else %}
+        {% if automation_blocker_boolean %}
+          {% for entity in automation_blocker_entities %}
+            {% if states[entity].state == 'on' %}
               false
             {% endif %}
-          {% else %}
-            true
-        	{% endfor %}
-	      {% endif %}
+          {% endfor %}
+        {% endif %}
       {% else %}
         true
       {% endif %}
@@ -203,17 +198,17 @@ condition:
       {% if 'Always' == elevation %}
         true
       {% else %}
-      {% set sun_elevation = state_attr('sun.sun', 'elevation') %}
-      {% if sun_elevation is none %}
-          false
-      {% else %}
-        {% if (sun_elevation > elevation_adjustment and 'Above horizon' == elevation) or
-              (sun_elevation <= elevation_adjustment and 'Below horizon' == elevation) %}
-          true
+        {% set sun_elevation = state_attr('sun.sun', 'elevation') %}
+        {% if sun_elevation is none %}
+            false
         {% else %}
-          false
+          {% if (sun_elevation > elevation_adjustment and 'Above horizon' == elevation) or
+                (sun_elevation <= elevation_adjustment and 'Below horizon' == elevation) %}
+            true
+          {% else %}
+            false
+          {% endif %}
         {% endif %}
-      {% endif %}
       {% endif %}
 action:
   - choose:
