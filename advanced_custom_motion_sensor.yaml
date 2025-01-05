@@ -180,7 +180,7 @@ condition:
       {% if automation_blocker_entitites == null %}
         true
       {% else %}
-        true
+        false
       {% endif %}
   - condition: template
     value_template: >
