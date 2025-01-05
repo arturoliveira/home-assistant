@@ -189,9 +189,9 @@ condition:
               false
             {% endif %}
           {% endfor %}
+        {% else %}
+          true
         {% endif %}
-      {% else %}
-        true
       {% endif %}
   - condition: template
     value_template: >
