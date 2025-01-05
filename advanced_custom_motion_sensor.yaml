@@ -102,18 +102,18 @@ blueprint:
           unit_of_measurement: degrees
           mode: slider
           step: 1.0
-    automation_blocker_enabled:
-      name: Enable Automation Blocker
-      description: Enable or disable automation blocker.
-      default: false
-      selector:
-        boolean: {}
     automation_blocker_entities:
       name: Automation Blocker Entities
       description: The entities whose state will block the automation when any of them is "on".
       selector:
         entity:
           multiple: true
+    automation_blocker_boolean:
+      name: Automation Blocker (Optional)
+      description: Desired state of automation off blocker
+      default: false
+      selector:
+        boolean: {}
     motion_off_blocker:
       name: Motion Off Blocker (Optional)
       description:
@@ -153,7 +153,7 @@ mode: restart
 max_exceeded: silent
 variables:
   scene_ambient: !input scene_ambient
-  automation_blocker_enabled: !input automation_blocker_enabled
+  automation_blocker_boolean: !input automation_blocker_boolean
   automation_blocker_entities: !input automation_blocker_entities
   motion_off_blocker: !input motion_off_blocker
   motion_off_blocker_boolean: !input motion_off_blocker_boolean
@@ -176,7 +176,15 @@ trigger:
 condition:
   - condition: template
     value_template: >
-      {% if automation_blocker_enabled %}
+      {% if automation_blocker_boolean %}
+        {% for entity in automation_blocker_entities %}
+          {% if states[entity].state == 'off' %}
+            false
+          {% endif %}
+        {% else %}
+          true
+        {% endfor %}
+      {% elseif automation_blocker_boolean %}
         {% for entity in automation_blocker_entities %}
           {% if states[entity].state == 'on' %}
             false
