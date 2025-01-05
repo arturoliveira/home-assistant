@@ -157,6 +157,7 @@ variables:
   automation_blocker_boolean: !input automation_blocker_boolean
   automation_blocker_entities: !input automation_blocker_entities
   motion_off_blocker_boolean: !input motion_off_blocker_boolean
+  motion_blocker_entities: !input motion_blocker_entities
   elevation: !input elevation
   elevation_adjustment: !input elevation_adjustment
   motion_entity: !input motion_entity
