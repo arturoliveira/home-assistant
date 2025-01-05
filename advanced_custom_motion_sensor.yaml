@@ -177,22 +177,26 @@ trigger:
 condition:
   - condition: template
     value_template: >
-      {% if automation_blocker_boolean %}
-        {% for entity in automation_blocker_entities %}
-          {% if states[entity].state == 'off' %}
-            false
-          {% endif %}
-        {% endfor %}
-      {% else %}
-        {% if not automation_blocker_boolean %}
+      {% if automation_blocker_entitites == null %}
+        {% if automation_blocker_boolean %}
           {% for entity in automation_blocker_entities %}
-            {% if states[entity].state == 'on' %}
+            {% if states[entity].state == 'off' %}
               false
             {% endif %}
           {% endfor %}
         {% else %}
-          true
+          {% if not automation_blocker_boolean %}
+            {% for entity in automation_blocker_entities %}
+              {% if states[entity].state == 'on' %}
+                false
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            true
+          {% endif %}
         {% endif %}
+      {% else %}
+        true
       {% endif %}
   - condition: template
     value_template: >
