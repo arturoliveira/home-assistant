@@ -1,0 +1,72 @@
+blueprint:
+  name: Motion Sensor Light with Brightness Control and Sun Conditions
+  description: Turns on a light based on motion detection, allows adjusting brightness, and only works during night time (after sunset and before sunrise).
+  domain: automation
+  input:
+    motion_sensor:
+      name: Motion Sensor
+      description: The motion sensor that triggers the light.
+      selector:
+        entity:
+          domain: binary_sensor
+    light:
+      name: Light to Control
+      description: The light that will be turned on when motion is detected.
+      selector:
+        entity:
+          domain: light
+    brightness_level:
+      name: Brightness Level
+      description: The brightness level to set when the light turns on (0 to 255).
+      default: 255
+      selector:
+        number:
+          min: 0
+          max: 255
+          step: 1
+          unit_of_measurement: "%"
+    delay_time:
+      name: Delay Time
+      description: Time in seconds to wait before turning off the light if no motion is detected.
+      default: 300
+      selector:
+        number:
+          min: 1
+          max: 600
+          step: 1
+          unit_of_measurement: "seconds"
+    sun_condition:
+      name: Enable Automation Only at Night
+      description: Set whether the automation should only run during the night (after sunset and before sunrise).
+      default: true
+      selector:
+        boolean:
+
+trigger:
+  - platform: state
+    entity_id: !input motion_sensor
+    to: 'on'
+
+condition:
+  - condition: sun
+    after: sunset
+    before: sunrise
+    enabled: !input sun_condition
+
+action:
+  - service: light.turn_on
+    target:
+      entity_id: !input light
+    data:
+      brightness: !input brightness_level
+
+  - wait_for_trigger:
+      - platform: state
+        entity_id: !input motion_sensor
+        to: 'off'
+    timeout: !input delay_time
+    continue_on_timeout: true
+
+  - service: light.turn_off
+    target:
+      entity_id: !input light
