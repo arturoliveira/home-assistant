@@ -182,7 +182,7 @@ condition:
         true
       {% else %}
         {% for entity in automation_blocker_entities %}
-          {% if states(entity) == 'on' %}
+          {% if states(entity) == (automation_blocker_boolean | string) %}
             false
           {% endif %}
         {% endfor %}
