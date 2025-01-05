@@ -184,14 +184,16 @@ condition:
         {% else %}
           true
         {% endfor %}
-      {% elseif automation_blocker_boolean %}
-        {% for entity in automation_blocker_entities %}
-          {% if states[entity].state == 'on' %}
-            false
-          {% endif %}
-        {% else %}
-          true
-        {% endfor %}
+      {% else  %}
+		    {% if automation_blocker_boolean %}
+        	{% for entity in automation_blocker_entities %}
+      			{% if states[entity].state == 'on' %}
+              false
+            {% endif %}
+          {% else %}
+            true
+        	{% endfor %}
+	      {% endif %}
       {% else %}
         true
       {% endif %}
