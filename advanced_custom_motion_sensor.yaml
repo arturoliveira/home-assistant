@@ -103,8 +103,9 @@ blueprint:
           mode: slider
           step: 1.0
     automation_blocker_entities:
-      name: Automation Blocker Entities
-      description: The entities whose state will block the automation when any of them is "on".
+      name: Automation Blocker (Optional)
+      description: Only run if this boolean is in desired state (see next input)
+      default: 
       selector:
         entity:
           multiple: true
