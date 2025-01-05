@@ -184,7 +184,7 @@ condition:
           {% endif %}
         {% endfor %}
       {% else %}
-        {% if automation_blocker_boolean %}
+        {% if not automation_blocker_boolean %}
           {% for entity in automation_blocker_entities %}
             {% if states[entity].state == 'on' %}
               false
