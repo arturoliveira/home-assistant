@@ -1,5 +1,5 @@
 blueprint:
-  name: Advanced Custom Motion Sensor with Multiple Automation Blockers
+  name: Advanced Custom Motion Sensor with Automation Blocker Boolean
   description: |
     This motion sensor is based on several ideas from other blueprints, and adding my own customizations.
     Inputs and actions are:
@@ -102,22 +102,18 @@ blueprint:
           unit_of_measurement: degrees
           mode: slider
           step: 1.0
-    automation_blockers:
-      name: Automation Blockers (Optional)
-      description: List of entities that can block the automation.
-      default: []
+    automation_blocker_enabled:
+      name: Enable Automation Blocker
+      description: Enable or disable automation blocker.
+      default: false
       selector:
-        entity: 
+        boolean: {}
+    automation_blocker_entities:
+      name: Automation Blocker Entities
+      description: The entities whose state will block the automation when any of them is "on".
+      selector:
+        entity:
           multiple: true
-    automation_blocker_states:
-      name: Automation Blocker States (Optional)
-      description: The desired states for each automation blocker entity.
-      default: []
-      selector:
-        select:
-          options:
-            - 'on'
-            - 'off'
     motion_off_blocker:
       name: Motion Off Blocker (Optional)
       description:
@@ -157,8 +153,8 @@ mode: restart
 max_exceeded: silent
 variables:
   scene_ambient: !input scene_ambient
-  automation_blockers: !input automation_blockers
-  automation_blocker_states: !input automation_blocker_states
+  automation_blocker_enabled: !input automation_blocker_enabled
+  automation_blocker_entities: !input automation_blocker_entities
   motion_off_blocker: !input motion_off_blocker
   motion_off_blocker_boolean: !input motion_off_blocker_boolean
   elevation: !input elevation
@@ -178,10 +174,19 @@ trigger:
     to: "off"
     for: !input no_motion_wait
 condition:
-  - condition: or
-    conditions:
-      - "{{ automation_blockers | length == 0 }}"
-      - "{{ automation_blockers | selectattr('state', 'equalto', automation_blocker_states[0]) | list | length == automation_blockers | length }}"
+  - condition: template
+    value_template: >
+      {% if automation_blocker_enabled %}
+        {% for entity in automation_blocker_entities %}
+          {% if states[entity].state == 'on' %}
+            false
+          {% endif %}
+        {% else %}
+          true
+        {% endfor %}
+      {% else %}
+        true
+      {% endif %}
   - condition: template
     value_template: >
       {% if 'Always' == elevation %}
