@@ -177,14 +177,17 @@ trigger:
 condition:
   - condition: template
     value_template: >
+      {% set blocker_matched = false %}
       {% if automation_blocker_entities | list | length == 0 %}
         true
       {% else %}
         {% for entity in automation_blocker_entities %}
           {% if states(entity) == (automation_blocker_boolean | string) %}
-            false
+            {% set blocker_matched = true %}
+            {% break %}
           {% endif %}
         {% endfor %}
+        {{ not blocker_matched }}
       {% endif %}
   - condition: template
     value_template: >
