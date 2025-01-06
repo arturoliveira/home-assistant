@@ -185,7 +185,6 @@ condition:
             false
           {% endif %}
         {% endfor %}
-        true
       {% endif %}
   - condition: template
     value_template: >
