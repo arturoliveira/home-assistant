@@ -182,7 +182,7 @@ condition:
         true
       {% else %}
         {% for entity in automation_blocker_entities %}
-          {% if states(entity) == (automation_blocker_boolean | string) %}
+          {% if states(entity).state == (automation_blocker_boolean | string) %}
             {% set blocker_matched = true %}
             {% break %}
           {% endif %}
