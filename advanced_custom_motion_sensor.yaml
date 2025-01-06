@@ -175,19 +175,18 @@ trigger:
     to: "off"
     for: !input no_motion_wait
 condition:
-condition:
   - condition: template
     value_template: >
       {% if automation_blocker_entities | list | length == 0 %}
         true
       {% else %}
-        {% set matched = false %}
+        {% set block = false %}
         {% for entity in automation_blocker_entities %}
-          {% if states(entity) == (not automation_blocker_boolean | string) %}
-            {% set matched = true %}
+          {% if states(entity) == ('on' if automation_blocker_boolean else 'off') %}
+            {% set block = true %}
           {% endif %}
         {% endfor %}
-          {{ not matched }}
+        {{ not block }}
       {% endif %}
   - condition: template
     value_template: >
