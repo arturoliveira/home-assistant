@@ -1,5 +1,5 @@
 blueprint:
-  name: Advanced Custom Motion Sensor with Automation Blocker Boolean
+  name: Advanced Custom Motion Sensor Enhanced
   description: |
     This motion sensor is based on several ideas from other blueprints, and adding my own customizations.
     Inputs and actions are:
@@ -14,7 +14,6 @@ blueprint:
     - Only run the motion off action if an optional entity is in desired state
 
   domain: automation
-  source_url: https://github.com/brigger/HomeAssistant_Blueprints/blob/main/advanced_custom_motion_sensor.yaml
   input:
     motion_entity:
       name: Motion Sensor
@@ -32,7 +31,7 @@ blueprint:
     luminance_sensor:
       name: Illuminance sensor
       description: This sensor will be used to determine the illumination.
-      default: 
+      default:
       selector:
         entity:
           domain: sensor
@@ -105,7 +104,7 @@ blueprint:
     automation_blocker_entities:
       name: Automation Blocker (Optional)
       description: Only run if this boolean is in desired state (see next input)
-      default: 
+      default:
       selector:
         entity:
           multiple: true
@@ -120,9 +119,10 @@ blueprint:
       description:
         Motion off sequence (trigger goes from ON to OFF) is not run if this boolean is in desired state
         (see next input)
-      default: 
+      default:
       selector:
-        entity: {}
+        entity:
+          multiple: true
     motion_off_blocker_boolean:
       name: Motion Off Chooser (Optional)
       description: Desired state of motion off blocker
@@ -176,18 +176,19 @@ trigger:
     for: !input no_motion_wait
 condition:
   - condition: template
-    value_template: >
-      {% set blocker_matched = false %}
-      {% if automation_blocker_entities | list | length == 0 %}
+    value_template: |
+      {% if automation_blocker_entities | length == 0 %}
         true
       {% else %}
+        {% set unmatched_states = namespace(matched=True) %}
         {% for entity in automation_blocker_entities %}
-          {% if states(entity).state == (automation_blocker_boolean | string) %}
-            {% set blocker_matched = true %}
+          {% set entity_state = states[entity].state %}
+          {% if (automation_blocker_boolean and entity_state != 'on') or (not automation_blocker_boolean and entity_state != 'off') %}
+            {% set unmatched_states.matched = False %}
             {% break %}
           {% endif %}
         {% endfor %}
-        {{ not blocker_matched }}
+        {{ unmatched_states.matched }}
       {% endif %}
   - condition: template
     value_template: >
@@ -207,6 +208,23 @@ condition:
         {% endif %}
       {% endif %}
 action:
+  - service: logbook.log
+    data:
+      name: "Automation Debug"
+      message: >
+        {% if automation_blocker_entities | length == 0 %}
+          true
+        {% else %}
+          {% set unmatched_states = namespace(matched=True) %}
+          {% for entity in automation_blocker_entities %}
+            {% set entity_state = states[entity].state %}
+            {% if (automation_blocker_boolean and entity_state != 'on') or (not automation_blocker_boolean and entity_state != 'off') %}
+              {% set unmatched_states.matched = False %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+          {{ unmatched_states.matched }}
+        {% endif %}
   - choose:
       - conditions:
           - condition: template
@@ -227,12 +245,20 @@ action:
                 {{ brightness | round(0) }}
       - conditions:
           - condition: template
-            value_template: "{{ trigger.to_state.state == 'off' }}"
-          - condition: or
-            conditions:
-              - "{{ motion_off_blocker == none }}"
-              - "{{ motion_off_blocker_boolean and states[motion_off_blocker].state == 'on' }}"
-              - "{{ not motion_off_blocker_boolean and states[motion_off_blocker].state == 'off' }}"
+            value_template: |
+              {% if motion_off_blocker | length == 0 %}
+                true
+              {% else %}
+                {% set unmatched_states = namespace(matched=True) %}
+                {% for entity in motion_off_blocker %}
+                  {% set entity_state = states[entity].state %}
+                  {% if (motion_off_blocker_boolean and entity_state != 'on') or (not motion_off_blocker_boolean and entity_state != 'off') %}
+                    {% set unmatched_states.matched = False %}
+                    {% break %}
+                  {% endif %}
+                {% endfor %}
+                {{ unmatched_states.matched }}
+              {% endif %}
         sequence:
           - choose:
               - conditions:
